@@ -230,8 +230,8 @@ class Grader:
             return json.dump(data, sys.stdout);
         else:
             config_fname = qr_code.data.decode('utf-8')
-            config_fname = (os.path.dirname(os.path.abspath(sys.argv[0])) 
-                + '/config/6q.json')
+            config_fname = (os.path.dirname(os.path.abspath(sys.argv[0]))
+                            + '/config/' + config_fname + '.json')
 
         # Read config file into dictionary and scale values. Check for duplicate
         # keys with object pairs hook.
