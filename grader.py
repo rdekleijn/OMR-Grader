@@ -166,15 +166,32 @@ class Grader:
         
         self.scale_config_r(config, x_scale, y_scale, re_x, re_y)
 
-    def grade(self, image_name, verbose_mode, debug_mode, scale):
+    def load_image(self, image_name):
+
+        # Initialize dictionary to be returned.
+        data = {
+            'status' : 0,
+            'error' : ''
+        }
+
+        # Load image.
+        im = cv.imread(image_name)
+        if im is None:
+            data['status'] = 1
+            data['error'] = f'Image {image_name} not found'
+            return json.dump(data, sys.stdout)
+
+        return im
+
+    def grade_image(self, im, verbose_mode, debug_mode, scale):
         """
         Grades a test image and outputs the result to stdout as a JSON object.
 
         Args:
             image_name (str): Filepath to the test image to be graded.
-            verbose_mode (bool): True to run program in verbose mode, False 
+            verbose_mode (bool): True to run program in verbose mode, False
                 otherwise.
-            debug_mode (bool): True to run program in debug mode, False 
+            debug_mode (bool): True to run program in debug mode, False
                 otherwise.
             scale (str): Factor to scale image slices by.
 
@@ -202,31 +219,18 @@ class Grader:
             data['error'] = f'Scale {scale} must be positive'
             return json.dump(data, sys.stdout)
 
-        # Verify that the filepath leads to a .png
-        if not (image_name.endswith('.png')):
-            data['status'] = 1
-            data['error'] = f'File {image_name} must be of type .png'
-            return json.dump(data, sys.stdout)
-
-        # Load image. 
-        im = cv.imread(image_name)
-        if im is None:
-            data['status'] = 1
-            data['error'] = f'Image {image_name} not found'
-            return json.dump(data, sys.stdout);
-
         # Find test page within image.
         page = self.find_page(im)
         if page is None:
             data['status'] = 1
-            data['error'] = f'Page not found in {image_name}'
-            return json.dump(data, sys.stdout);   
+            data['error'] = f'Page not found'
+            return json.dump(data, sys.stdout);
 
         # Decode QR code, which will contain path to configuration file.
         qr_code = self.decode_qr(page)
         if qr_code is None:
             data['status'] = 1
-            data['error'] = f'QR code not found in {image_name}'
+            data['error'] = f'QR code not found'
             return json.dump(data, sys.stdout);
         else:
             config_fname = qr_code.data.decode('utf-8')
@@ -237,7 +241,7 @@ class Grader:
         # keys with object pairs hook.
         try:
             with open(config_fname) as file:
-                config = json.load(file, 
+                config = json.load(file,
                     object_pairs_hook=config_parser.duplicate_key_check)
         except FileNotFoundError:
             data['status'] = 1
@@ -253,13 +257,13 @@ class Grader:
             return json.dump(data, sys.stdout)
 
         # Scale config values based on page size.
-        self.scale_config(config, page.shape[1], page.shape[0])  
+        self.scale_config(config, page.shape[1], page.shape[0])
 
         # Rotate page until upright.
         page = self.upright_image(page, config)
         if page is None:
             data['status'] = 1
-            data['error'] = f'Could not upright page in {image_name}'
+            data['error'] = f'Could not upright page'
             return json.dump(data, sys.stdout);
 
         # Grade each test box and add result to data.
@@ -277,6 +281,19 @@ class Grader:
 
         # For debugging.
         return json.dumps(data)
+
+    def grade_file(self, filename, verbose_mode, debug_mode, scale):
+
+        # Check if filename ends with .pdf
+        if (filename.endswith('.pdf')):
+            self.grade_pdf_batch(filename, verbose_mode, debug_mode, scale)
+        else:
+            im = self.load_image(filename)
+            return self.grade_image(im, verbose_mode, debug_mode, scale)
+
+    def grade_pdf_batch(self, filename, verbose_mode, debug_mode, scale):
+        pass
+
 
 
 def main():
@@ -297,7 +314,8 @@ def main():
 
     # Grade test.
     grader = Grader()
-    return grader.grade(args['image'], args['v'], args['d'], args['scale'])
+    #return grader.grade(args['image'], args['v'], args['d'], args['scale'])
+    return grader.grade_file(args['image'], args['v'], args['d'], args['scale'])
 
 
 if __name__ == '__main__':
