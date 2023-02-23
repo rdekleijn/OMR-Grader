@@ -3,10 +3,12 @@ import sys
 import argparse
 import json
 import re
+import numpy as np
 
 import cv2 as cv
 from imutils.perspective import four_point_transform
 import pyzbar.pyzbar as pyzbar
+from pdf2image import convert_from_path
 
 import config_parser
 from test_box import TestBox
@@ -276,8 +278,8 @@ class Grader:
             data[box.name] = box.grade()
 
         # Output result as a JSON object to stdout.
-        json.dump(data, sys.stdout)
-        print()
+        # json.dump(data, sys.stdout)
+        # print()
 
         # For debugging.
         return json.dumps(data)
@@ -292,8 +294,21 @@ class Grader:
             return self.grade_image(im, verbose_mode, debug_mode, scale)
 
     def grade_pdf_batch(self, filename, verbose_mode, debug_mode, scale):
-        pass
+        pages = convert_from_path(filename, dpi=300, fmt='png') #, first_page=1, last_page=2)
+        print(pages)
+        for page in pages:
+            open_cv_image = np.array(page)
+            # Convert RGB to BGR
+            open_cv_image = open_cv_image[:, :, ::-1].copy()
 
+            # adjust gamma if bubbles not recognized
+            gamma = 0.7
+            lookUpTable = np.empty((1, 256), np.uint8)
+            for i in range(256):
+                lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+            im = cv.LUT(open_cv_image, lookUpTable)
+
+            print(self.grade_image(im, verbose_mode, debug_mode, scale))
 
 
 def main():
