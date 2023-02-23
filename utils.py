@@ -98,3 +98,34 @@ def encode_image(image):
         _, binary = cv.imencode('.png', image)
         encoded = base64.b64encode(binary)
         return encoded.decode('utf-8')
+
+def export_to_xls(results):
+    import xlsxwriter
+    from collections import deque
+
+    print("Processing results to xls")
+
+    workbook = xlsxwriter.Workbook('graded_results.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    for col, data in enumerate(results):
+        studID = ''.join(data['id']['bubbled']).replace('-', '')
+        worksheet.write(0, col, studID)
+
+        given_answers = data['answer']['bubbled']
+        # if data['version']['bubbled'][0] == "B":
+        #     for i in range(29):
+        #         given_answers.append(given_answers.pop(0))
+
+        for row, answer in enumerate(given_answers, 1):
+            worksheet.write(row, col, answer)
+
+        unclear = data['answer']['unsure']
+        for row, item in enumerate(unclear, 53):
+            worksheet.write(row, col, item)
+
+        errors = data['answer']['error']
+        for row, item in enumerate(errors, 70):
+            worksheet.write(row, col, item)
+
+    workbook.close()

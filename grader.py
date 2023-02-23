@@ -296,6 +296,7 @@ class Grader:
     def grade_pdf_batch(self, filename, verbose_mode, debug_mode, scale):
         pages = convert_from_path(filename, dpi=300, fmt='png') #, first_page=1, last_page=2)
         print(pages)
+        all_results = []
         for page in pages:
             open_cv_image = np.array(page)
             # Convert RGB to BGR
@@ -308,7 +309,11 @@ class Grader:
                 lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
             im = cv.LUT(open_cv_image, lookUpTable)
 
-            print(self.grade_image(im, verbose_mode, debug_mode, scale))
+            result = json.loads(self.grade_image(im, verbose_mode, debug_mode, scale))
+            all_results.append(result)
+
+        utils.export_to_xls(all_results)
+
 
 
 def main():
