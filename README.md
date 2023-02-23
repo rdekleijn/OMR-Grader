@@ -1,6 +1,6 @@
 # OMR Grader
 
-Grader for bubble sheet multiple choice tests using Optical Mark Recognition, Python, and OpenCV. Images should be 300 dpi for maximum accuracy.
+Grader for bubble sheet multiple choice tests using Optical Mark Recognition, Python, and OpenCV. Images should be 300 dpi for maximum accuracy. This fork includes an option for multi-page PDF processing, very handy for grading multiple-choice exams in large groups.
 
 ## Getting Started
 
@@ -25,6 +25,8 @@ $ pip install numpy
 $ pip install imutils
 $ brew install zbar
 $ pip install pyzbar
+$ pip install xlsxwriter
+$ pip install pdf2image
 ```
 
 ### Installing on Windows Subsystem for Linux
