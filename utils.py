@@ -111,21 +111,25 @@ def export_to_xls(results):
     for col, data in enumerate(results):
         studID = ''.join(data['id']['bubbled']).replace('-', '')
         worksheet.write(0, col, studID)
+        worksheet.write(1, col, data['version']['bubbled'][0])
+
 
         given_answers = data['answer']['bubbled']
         # if data['version']['bubbled'][0] == "B":
         #     for i in range(29):
         #         given_answers.append(given_answers.pop(0))
 
-        for row, answer in enumerate(given_answers, 1):
+        for row, answer in enumerate(given_answers, 3):
             worksheet.write(row, col, answer)
 
+        worksheet.write(57, col, "unclear")
         unclear = data['answer']['unsure']
-        for row, item in enumerate(unclear, 53):
+        for row, item in enumerate(unclear, 58):
             worksheet.write(row, col, item)
 
+        worksheet.write(71, col, "errors")
         errors = data['answer']['error']
-        for row, item in enumerate(errors, 70):
+        for row, item in enumerate(errors, 72):
             worksheet.write(row, col, item)
 
     workbook.close()
