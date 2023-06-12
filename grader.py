@@ -295,9 +295,13 @@ class Grader:
 
     def grade_pdf_batch(self, filename, verbose_mode, debug_mode, scale):
         pages = convert_from_path(filename, dpi=300, fmt='png') #, first_page=1, last_page=2)
-        print(pages)
+        #print(pages)
+        print(f"PDF file with {len(pages)} pages.")
         all_results = []
+        page_num = 0
         for page in pages:
+            page_num += 1
+            print(f"Processing page {page_num} of {len(pages)}.")
             open_cv_image = np.array(page)
             # Convert RGB to BGR
             open_cv_image = open_cv_image[:, :, ::-1].copy()
